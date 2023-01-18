@@ -1,4 +1,4 @@
-﻿@model Dictionary<string, double>
+﻿@model List<string>
 @{
     ViewData["Title"] = "Index";
 }
@@ -11,6 +11,6 @@
 
 @foreach (var item in Model)
 {
-    <h2>@item.Key -> @item.Value <a asp-action="DeleteItem" asp-route-name="@item.Key>">Sil</a></h2>
+    <h2>@item <a asp-action="DeleteItem" asp-route-name="@item>">Sil</a></h2>
 }
 

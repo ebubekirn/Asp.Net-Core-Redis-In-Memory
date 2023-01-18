@@ -1,6 +1,6 @@
-using CachingWebAPI.Data;
-using CachingWebAPI.Services;
 using Microsoft.EntityFrameworkCore;
+using RedisExample.Models;
+using RedisExample.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,11 +11,21 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+builder.Services.AddScoped<IProductRepository, ProductRepository>();
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-        options.UseSqlServer(builder.Configuration.GetConnectionString("SampleDbConnection")));
-builder.Services.AddScoped<ICacheService, CacheService>();
+{
+    options.UseInMemoryDatabase("myDatabase");
+});
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    dbContext.Database.EnsureCreated();
+}
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
@@ -24,7 +34,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI();
 }
 
-//app.UseHttpsRedirection();
+app.UseHttpsRedirection();
 
 app.UseAuthorization();
 

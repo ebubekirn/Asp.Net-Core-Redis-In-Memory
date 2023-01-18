@@ -7,23 +7,30 @@ namespace RedisExchangeAPI.Web.Controllers
     public class SortedSetTypeController : Controller
     {
         private readonly RedisService _redisService;
+
         private readonly IDatabase db;
+
         private string listKey = "sortedsetnames";
 
         public SortedSetTypeController(RedisService redisService)
         {
             _redisService = redisService;
-            db = _redisService.GetDb(3); // 1. VERİTABANINI KULLAN DİYORUZ.
+            db = _redisService.GetDb(3); // 3. VERİTABANINI KULLAN DİYORUZ.
         }
         public IActionResult Index()
         {
-            Dictionary<string,double> list = new();
+            List<string> list = new();
             if (db.KeyExists(listKey))
             {
-                db.SortedSetScan(listKey).ToList().ForEach(x =>
+                db.SortedSetRangeByRankWithScores(listKey).ToList().ForEach(x =>
                 {
-                    list.Add(x.Element, x.Score);
+                    list.Add(x.ToString());
                 });
+
+                //db.SortedSetRangeByRankWithScores(listKey, 0, 5, order: Order.Descending).ToList().ForEach(x =>
+                //{
+                //    list.Add(x.ToString());
+                //});
             }
             return View(list);
         }
@@ -36,9 +43,9 @@ namespace RedisExchangeAPI.Web.Controllers
             return RedirectToAction("Index");
         }
 
-        public IActionResult DeleteItem(string name)
+        public async Task<IActionResult> DeleteItem(string name)
         {
-            db.SortedSetRemove(listKey, name);
+            await db.SortedSetRemoveAsync(listKey, name);
 
             return RedirectToAction("Index");
         }
